@@ -40,10 +40,10 @@ def get_ape_info(apeID):
         metadata = metadata_response.json()
         
         data['image'] = metadata['image']
-        print(metadata)
+        print(metadata[3])
         # Assuming 'eyes' is a key in the 'attributes' list
         for attribute in metadata['attributes']:
-            if attribute['trait_type'] == 'eyes':
+            if attribute['trait_type'] == 'Eyes':
                 data['eyes'] = attribute['value']
                 break
 
