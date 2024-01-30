@@ -40,7 +40,6 @@ def get_ape_info(apeID):
         metadata = metadata_response.json()
         
         data['image'] = metadata['image']
-        print(metadata)
         # Assuming 'eyes' is a key in the 'attributes' list
         for attribute in metadata['attributes']:
             if attribute['trait_type'] == 'Eyes':
@@ -52,5 +51,4 @@ def get_ape_info(apeID):
 
     assert isinstance(data, dict), f'get_ape_info{apeID} should return a dict' 
     assert all([a in data.keys() for a in ['owner', 'image', 'eyes']]), f"return value should include the keys 'owner', 'image' and 'eyes'"
-    print(data)
     return data
