@@ -26,25 +26,24 @@ pinata_gateway = "tan-tremendous-wolf-528.mypinata.cloud"
 def get_ape_info(apeID):
     assert isinstance(apeID, int), f"{apeID} is not an int"
     assert 1 <= apeID <= 10000, f"{apeID} must be between 1 and 10000"
-
     data = {'owner': "", 'image': "", 'eyes': ""}
     
     # try:
-      owner = contract.functions.ownerOf(apeID).call()
-      tokenURI = contract.functions.tokenURI(apeID).call()
+    owner = contract.functions.ownerOf(apeID).call()
+    tokenURI = contract.functions.tokenURI(apeID).call()
 
-      if tokenURI.startswith("ipfs://"):
-          ipfs_hash = tokenURI.split("ipfs://")[1]
-          tokenURI = f"https://{pinata_gateway}/ipfs/{ipfs_hash}"
+    if tokenURI.startswith("ipfs://"):
+        ipfs_hash = tokenURI.split("ipfs://")[1]
+        tokenURI = f"https://{pinata_gateway}/ipfs/{ipfs_hash}"
 
-      headers = {"Authorization": f"Bearer {PINATA_JWT}"}
-      metadata_response = requests.get(tokenURI, headers=headers)
-      metadata = metadata_response.json()
-      print(metadata)
+    headers = {"Authorization": f"Bearer {PINATA_JWT}"}
+    metadata_response = requests.get(tokenURI, headers=headers)
+    metadata = metadata_response.json()
+    print(metadata)
 
-      data['image'] = metadata.get("image", "").replace("ipfs://", f"https://{pinata_gateway}/ipfs/")
-      data['eyes'] = next((attr["value"] for attr in metadata.get("attributes", []) if attr["trait_type"] == "eyes"), "")
-      data['owner'] = owner
+    data['image'] = metadata.get("image", "").replace("ipfs://", f"https://{pinata_gateway}/ipfs/")
+    data['eyes'] = next((attr["value"] for attr in metadata.get("attributes", []) if attr["trait_type"] == "eyes"), "")
+    data['owner'] = owner
 
     # except Exception as e:
     #     print(f"Error retrieving Ape info: {e}")
