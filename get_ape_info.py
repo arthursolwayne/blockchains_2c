@@ -11,6 +11,7 @@ alchemy_api_key = "SFvU9KC-VwMQ2O84dcM-RmeQQ4hPIXj_"
 api_url = f"https://eth-mainnet.g.alchemy.com/v2/{alchemy_api_key}"
 provider = HTTPProvider(api_url)
 web3 = Web3(provider)
+bayc_address = "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D"
 contract_address = Web3.to_checksum_address(bayc_address)
 contract = web3.eth.contract(address=contract_address, abi=abi)
 
