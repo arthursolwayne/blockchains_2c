@@ -20,33 +20,39 @@ contract = web3.eth.contract(address=contract_address, abi=abi)
 # Pinata Credentials
 PINATA_API_KEY = "0285a9b49ee24a8aadea"
 PINATA_API_SECRET = "cfe47904eb9a5b7fd08417fde78bb19b85d473ce756c3217caabcbb3e9fffac0"
-PINATA_JWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiIxYjA0OGZmMi0xMWNkLTRhODMtOWQ4NC1lYWZkMGU4YWEzNzIiLCJlbWFpbCI6ImFydHdheW5lQHNlYXMudXBlbm4uZWR1IiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInBpbl9wb2xpY3kiOnsicmVnaW9ucyI6W3siaWQiOiJGUkExIiwiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjF9LHsiaWQiOiJOWUMxIiwiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjF9XSwidmVyc2lvbiI6MX0sIm1mYV9lbmFibGVkIjpmYWxzZSwic3RhdHVzIjoiQUNUSVZFIn0sImF1dGhlbnRpY2F0aW9uVHlwZSI6InNjb3BlZEtleSIsInNjb3BlZEtleUtleSI6IjAyODVhOWI0OWVlMjRhOGFhZGVhIiwic2NvcGVkS2V5U2VjcmV0IjoiY2ZlNDc5MDRlYjlhNWI3ZmQwODQxN2ZkZTc4YmIxOWI4NWQ0NzNjZTc1NmMzMjE3Y2FhYmNiYjNlOWZmZmFjMCIsImlhdCI6MTcwNjU3MjkzMX0.JwvOkQtU-vuGPDgHImRqSCyAeDLbfAllSqnSpJCq0a8"
 pinata_gateway = "tan-tremendous-wolf-528.mypinata.cloud"
 
 def get_ape_info(apeID):
     assert isinstance(apeID, int), f"{apeID} is not an int"
     assert 1 <= apeID <= 10000, f"{apeID} must be between 1 and 10000"
+
     data = {'owner': "", 'image': "", 'eyes': ""}
     
-    # try:
-    owner = contract.functions.ownerOf(apeID).call()
-    tokenURI = contract.functions.tokenURI(apeID).call()
+    try:
+        owner = contract.functions.ownerOf(apeID).call()
+        tokenURI = contract.functions.tokenURI(apeID).call()
 
-    if tokenURI.startswith("ipfs://"):
-        ipfs_hash = tokenURI.split("ipfs://")[1]
-        tokenURI = f"https://{pinata_gateway}/ipfs/{ipfs_hash}"
+        if tokenURI.startswith("ipfs://"):
+            ipfs_hash = tokenURI.split("ipfs://")[1]
+            tokenURI = f"https://{pinata_gateway}/ipfs/{ipfs_hash}"
+        headers = {
+            "pinata_api_key": PINATA_API_KEY,
+            "pinata_secret_api_key": PINATA_API_SECRET
+        }
+        metadata_response = requests.get(tokenURI, headers=headers)
+        if metadata_response.status_code != 200:
+            print(f"Error fetching metadata: HTTP {metadata_response.status_code}")
+            return data
 
-    headers = {"Authorization": f"Bearer {PINATA_JWT}"}
-    metadata_response = requests.get(tokenURI, headers=headers)
-    metadata = metadata_response.json()
-    print(metadata)
+        metadata = metadata_response.json()
+        print(metadata)
 
-    data['image'] = metadata.get("image", "").replace("ipfs://", f"https://{pinata_gateway}/ipfs/")
-    data['eyes'] = next((attr["value"] for attr in metadata.get("attributes", []) if attr["trait_type"] == "eyes"), "")
-    data['owner'] = owner
-
-    # except Exception as e:
-    #     print(f"Error retrieving Ape info: {e}")
+        data['image'] = metadata.get("image", "").replace("ipfs://", f"https://{pinata_gateway}/ipfs/")
+        data['eyes'] = next((attr["value"] for attr in metadata.get("attributes", []) if attr["trait_type"] == "eyes"), "")
+        data['owner'] = owner
+        
+    except Exception as e:
+        print(f"Error retrieving Ape info: {e}")
 
     assert isinstance(data, dict), f'get_ape_info({apeID}) should return a dict'
     assert all([a in data.keys() for a in ['owner', 'image', 'eyes']]), "return value should include the keys 'owner', 'image', and 'eyes'"
