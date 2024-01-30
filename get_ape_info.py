@@ -40,6 +40,7 @@ def get_ape_info(apeID):
         headers = {"Authorization": f"Bearer {PINATA_JWT}"}
         metadata_response = requests.get(tokenURI, headers=headers)
         metadata = metadata_response.json()
+        print(metadata)
 
         data['image'] = metadata.get("image", "").replace("ipfs://", f"https://{pinata_gateway}/ipfs/")
         data['eyes'] = next((attr["value"] for attr in metadata.get("attributes", []) if attr["trait_type"] == "eyes"), "")
