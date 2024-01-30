@@ -1,13 +1,12 @@
 from web3 import Web3
 from web3.contract import Contract
 from web3.providers.rpc import HTTPProvider
-from web3.utils import toChecksumAddress
 import requests
 import json
 
 # Contract and ABI setup
 bayc_address = "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D"
-contract_address = toChecksumAddress(bayc_address)
+contract_address = Web3.to_checksum_address(bayc_address)
 with open('/home/codio/workspace/abi.json', 'r') as f:
     abi = json.load(f)
 
