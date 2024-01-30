@@ -4,36 +4,53 @@ from web3.providers.rpc import HTTPProvider
 import requests
 import json
 
-with open('/home/codio/workspace/abi.json', 'r') as f:
-    abi = json.load(f)
-
+# Your provided variables
 alchemy_api_key = "SFvU9KC-VwMQ2O84dcM-RmeQQ4hPIXj_"
 api_url = f"https://eth-mainnet.g.alchemy.com/v2/{alchemy_api_key}"
 provider = HTTPProvider(api_url)
 web3 = Web3(provider)
-bayc_address = "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D"
-contract_address = Web3.to_checksum_address(bayc_address)
-contract = web3.eth.contract(address=contract_address, abi=abi)
 
-# Pinata Gateway
-pinata_gateway = "tan-tremendous-wolf-528.mypinata.cloud"
+bayc_address = "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D"
+contract_address = Web3.toChecksumAddress(bayc_address)
+
+# Load ABI
+with open('/home/codio/workspace/abi.json', 'r') as f:
+    abi = json.load(f)
+
+contract = web3.eth.contract(address=contract_address, abi=abi)
 
 def get_ape_info(apeID):
     assert isinstance(apeID, int), f"{apeID} is not an int"
-    assert 1 <= apeID <= 10000, f"{apeID} must be between 1 and 10000"
+    assert 1 <= apeID, f"{apeID} must be at least 1"
+
     data = {'owner': "", 'image': "", 'eyes': ""}
-    data['owner'] = contract.functions.ownerOf(apeID).call()
-    tokenURI = contract.functions.tokenURI(apeID).call()
-    if tokenURI.startswith("ipfs://"):
-        tokenURI = tokenURI.replace("ipfs://", f"https://{pinata_gateway}/ipfs/")
-    response = requests.get(tokenURI)
-    metadata = response.json()
-    data['image'] = metadata.get("image", "").replace("ipfs://", f"https://{pinata_gateway}/ipfs/")
-    for attribute in metadata.get("attributes", []):
-        if attribute["trait_type"] == "eyes":
-            data['eyes'] = attribute["value"]
-            break
+    
+    # Get owner of the Ape
+    try:
+        data['owner'] = contract.functions.ownerOf(apeID).call()
+    except Exception as e:
+        raise ValueError(f"Error getting owner: {e}")
+
+    # Get token URI and fetch metadata from IPFS
+    try:
+        token_uri = contract.functions.tokenURI(apeID).call()
+        http_uri = token_uri.replace('ipfs://', 'https://ipfs.io/ipfs/')
+        
+        metadata_response = requests.get(http_uri)
+        metadata = metadata_response.json()
+        
+        data['image'] = metadata['image']
+
+        # Assuming 'eyes' is a key in the 'attributes' list
+        for attribute in metadata['attributes']:
+            if attribute['trait_type'] == 'eyes':
+                data['eyes'] = attribute['value']
+                break
+
+    except Exception as e:
+        raise ValueError(f"Error fetching metadata: {e}")
 
     assert isinstance(data, dict), f'get_ape_info{apeID} should return a dict' 
-    assert all([a in data.keys() for a in ['owner', 'image', 'eyes']]), f"return value should include the keys 'owner', 'image', and 'eyes'"
+    assert all([a in data.keys() for a in ['owner', 'image', 'eyes']]), f"return value should include the keys 'owner', 'image' and 'eyes'"
+    
     return data
