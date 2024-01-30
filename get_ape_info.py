@@ -29,24 +29,25 @@ def get_ape_info(apeID):
 
     data = {'owner': "", 'image': "", 'eyes': ""}
     
-    try:
-        owner = contract.functions.ownerOf(apeID).call()
-        tokenURI = contract.functions.tokenURI(apeID).call()
+    # try:
+      owner = contract.functions.ownerOf(apeID).call()
+      tokenURI = contract.functions.tokenURI(apeID).call()
 
-        if tokenURI.startswith("ipfs://"):
-            ipfs_hash = tokenURI.split("ipfs://")[1]
-            tokenURI = f"https://{pinata_gateway}/ipfs/{ipfs_hash}"
+      if tokenURI.startswith("ipfs://"):
+          ipfs_hash = tokenURI.split("ipfs://")[1]
+          tokenURI = f"https://{pinata_gateway}/ipfs/{ipfs_hash}"
 
-        headers = {"Authorization": f"Bearer {PINATA_JWT}"}
-        metadata_response = requests.get(tokenURI, headers=headers)
-        metadata = metadata_response.json()
-        print(metadata)
+      headers = {"Authorization": f"Bearer {PINATA_JWT}"}
+      metadata_response = requests.get(tokenURI, headers=headers)
+      metadata = metadata_response.json()
+      print(metadata)
 
-        data['image'] = metadata.get("image", "").replace("ipfs://", f"https://{pinata_gateway}/ipfs/")
-        data['eyes'] = next((attr["value"] for attr in metadata.get("attributes", []) if attr["trait_type"] == "eyes"), "")
-        data['owner'] = owner
-    except Exception as e:
-        print(f"Error retrieving Ape info: {e}")
+      data['image'] = metadata.get("image", "").replace("ipfs://", f"https://{pinata_gateway}/ipfs/")
+      data['eyes'] = next((attr["value"] for attr in metadata.get("attributes", []) if attr["trait_type"] == "eyes"), "")
+      data['owner'] = owner
+
+    # except Exception as e:
+    #     print(f"Error retrieving Ape info: {e}")
 
     assert isinstance(data, dict), f'get_ape_info({apeID}) should return a dict'
     assert all([a in data.keys() for a in ['owner', 'image', 'eyes']]), "return value should include the keys 'owner', 'image', and 'eyes'"
